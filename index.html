@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <title>Communicatiojng Between a Webpage and an Arduino</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.js"></script>
+        <link rel="stylesheet" href="index.css">
+
+        <style>
+
+            h1{
+                color: goldenrod;
+                font-size: 70px;
+                margin-top: 30px;
+            }
+
+
+            body{
+                background-color: #1f1f1f;
+                background-size: cover;
+                text-align: center;
+                color: white;
+                font-weight: bold;
+                font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+            }
+
+        </style>
+
+
+    </head>
+    <body>
+        
+        <h1>Communicating Between a Webpage and an Arduino</h1>
+
+        <div id="sample"></div>
+        
+        <script>
+
+            var socket = io();
+            socket.on('data', function(data){
+                console.log(data);
+                document.getElementById('sample').innerHTML = data;
+            });
+
+
+        </script>
+
+    </body>
+</html>
