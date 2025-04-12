@@ -3,16 +3,26 @@ const fs = require('fs');
 const WebSocket = require('ws');
 const socketio = require('socket.io');
 const express = require('express');
+const cors = require('cors');
 const db = require('./db'); // Import database
 
 const app = express();
+
+// --- Allow all CORS requests ---
+app.use(cors());  
+
 const server = http.createServer(app);
 
 // --- WebSocket for ESP32 ---
 const wss = new WebSocket.Server({ server });
 
-// --- Socket.IO for Frontend ---
-const io = socketio(server);
+// --- Socket.IO for Frontend with CORS ---
+const io = socketio(server, {
+  cors: {
+    origin: "http://localhost:5000", // <-- Allow React frontend
+    methods: ["GET", "POST"]
+  }
+});
 
 // Serve static files (later React frontend will go here)
 app.use(express.static('public'));
