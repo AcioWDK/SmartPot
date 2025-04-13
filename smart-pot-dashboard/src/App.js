@@ -29,10 +29,14 @@ const socket = io('http://localhost:3000');
 function App() {
   const [humidity, setHumidity] = useState(null);
   const [readings, setReadings] = useState([]);
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+  const savedTheme = localStorage.getItem('darkMode');
+  return savedTheme !== null ? savedTheme === 'true' : true; 
+});
   const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'desc' });
+  const [threshold, setThreshold] = useState(40); 
 
-useEffect(() => {
+  useEffect(() => {
   const savedTheme = localStorage.getItem('darkMode');
   if (savedTheme !== null) {
     setDarkMode(savedTheme === 'true'); 
@@ -64,6 +68,14 @@ useEffect(() => {
   localStorage.setItem('darkMode', darkMode.toString());
 }, [darkMode]);
 
+const handleThresholdChange = (e) => {
+  const newThreshold = e.target.value;
+  setThreshold(newThreshold);
+  socket.emit('thresholdUpdate', newThreshold); // Send to server
+};
+
+  
+  
   const handleThemeToggle = () => {
     setDarkMode(prev => !prev);
   };
@@ -243,9 +255,25 @@ useEffect(() => {
         <h1>🌱 Smart Pot Dashboard</h1>
         <h2>Live Humidity: {humidity !== null ? `${humidity}%` : 'Waiting for data...'}</h2>
 
-        <div style={{ width:'80%', margin: '0 auto' }}>
-          <Line data={chartData} options={chartOptions} />
-        </div>
+<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', marginTop: '2rem' }}>
+  <div style={{ flex: 2 }}>
+    <Line data={chartData} options={chartOptions} />
+  </div>
+
+  <div style={{ flex: 1 }}>
+    <h3>Pump Threshold</h3>
+    <input
+      type="range"
+      min="0"
+      max="100"
+      value={threshold}
+      onChange={handleThresholdChange}
+      className="slider-control"
+    />
+    <p>{threshold}%</p>
+  </div>
+</div>
+
 
         <h3>Recent Readings (Last 50)</h3>
         <table>

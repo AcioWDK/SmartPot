@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WebSocketsClient.h>
+#include <ArduinoJson.h>
 
 const char* ssid = "meh";
 const char* password = "okwhatever";
@@ -8,10 +9,15 @@ const char* password = "okwhatever";
 const char* websocket_server_host = "192.168.1.246"; // CHANGE to your computer IP
 const uint16_t websocket_server_port = 3000;
 
+int humidityThreshold = 0;
+
 WebSocketsClient webSocket;
 bool webSocketConnected = false;
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
+  
+  JsonDocument doc;
+
   switch (type) {
     case WStype_CONNECTED:
       Serial.println("[WebSocket] Connected to server");
@@ -21,9 +27,19 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       Serial.println("[WebSocket] Disconnected!");
       webSocketConnected = false;
       break;
-    case WStype_TEXT:
-      Serial.printf("[WebSocket] Received text: %s\n", payload);
-      break;
+    case WStype_TEXT: {
+        Serial.printf("[WSc] Received text: %s\n", payload);
+        DeserializationError error = deserializeJson(doc, payload);
+        if (!error) {
+          String type = doc["type"];
+          if (type == "threshold") {
+            int newThreshold = doc["value"];
+            humidityThreshold = newThreshold;
+            Serial.printf("New Pump Threshold: %d%%\n", humidityThreshold);
+          }
+        }
+        break;
+    }
     case WStype_ERROR:
       Serial.println("[WebSocket] Error!");
       webSocketConnected = false;

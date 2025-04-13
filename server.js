@@ -61,6 +61,18 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Frontend client disconnected');
   });
+
+  socket.on('thresholdUpdate', (newThreshold) => {
+  console.log('New threshold from frontend:', newThreshold);
+
+  // Broadcast it to all ESP32 clients (WebSocket)
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ type: 'threshold', value: newThreshold }));
+    }
+  });
+});
+
 });
 
 // API to get past humidity readings
