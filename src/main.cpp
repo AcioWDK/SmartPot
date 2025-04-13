@@ -48,7 +48,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 }
 
 void setup() {
-  Serial.begin(921600); // HIGH speed
+  Serial.begin(921600); 
   WiFi.begin(ssid, password);
 
   Serial.print("Connecting to WiFi");
