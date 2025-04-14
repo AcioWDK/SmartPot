@@ -255,13 +255,16 @@ const handleThresholdChange = (e) => {
         <h1>🌱 Smart Pot Dashboard</h1>
         <h2>Live Humidity: {humidity !== null ? `${humidity}%` : 'Waiting for data...'}</h2>
 
-<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', marginTop: '2rem' }}>
+<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', marginTop: '2rem', marginLeft: '2rem' }}>
   <div style={{ flex: 2 }}>
     <Line data={chartData} options={chartOptions} />
   </div>
 
-  <div style={{ flex: 1 }}>
-    <h3>Pump Threshold</h3>
+  <div style={{ flex: 1}}>
+    <div class='pump-threshold'>
+      <h3>Pump Threshold:</h3>
+      <h4>{threshold}%</h4>
+    </div>
     <input
       type="range"
       min="0"
@@ -270,17 +273,16 @@ const handleThresholdChange = (e) => {
       onChange={handleThresholdChange}
       className="slider-control"
     />
-    <p>{threshold}%</p>
   </div>
 </div>
 
 
-        <h3>Recent Readings (Last 50)</h3>
+        <h2>Recent Readings (Last 50)</h2>
         <table>
           <thead>
             <tr>
-              <th onClick={() => handleSort('timestamp')}>Timestamp {sortConfig.key === 'timestamp' ? (sortConfig.direction === 'asc' ? '(Oldest)' : '(Latest)') : ''}</th>
-              <th onClick={() => handleSort('value')}>Humidity (%) {sortConfig.key === 'value' ? (sortConfig.direction === 'asc' ? '(Lowest)' : '(Highest)') : ''}</th>
+              <th onClick={() => handleSort('timestamp')}>Timestamp {sortConfig.key === 'timestamp' ? (sortConfig.direction === 'asc' ? ' - Oldest' : ' - Latest') : ''}</th>
+              <th onClick={() => handleSort('value')}>Humidity (%){sortConfig.key === 'value' ? (sortConfig.direction === 'asc' ? ' - Lowest' : ' - Highest') : ''} </th>
             </tr>
           </thead>
           <tbody>

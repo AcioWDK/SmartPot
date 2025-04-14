@@ -1,4 +1,4 @@
-:root {
+/* :root {
   --background-color: #1e1e1e;
   --surface-color: #2a2a2a;
   --text-color: #e0e0e0;
@@ -6,7 +6,23 @@
   --table-header-color: #333333;
   --table-row-hover: #3a3a3a;
   --transition-speed: 0.4s;
+} */
+
+:root{
+  /* dark */
+  --dark-background-color: #121212;
+  --dark-surface-color: #1e1e1e;
+  --dark-primary-accent-color: #bb86fc;
+  --dark-secondary-accent-color:  #4bc0c0;
+  --dark-text-color: #e1e1e1;
+  --transition-speed: 0.4s;
+
+  --table-header-color: #333333;
+  --table-row-hover: #2f2f2f;
+  /* light */
+  --light-text-color: #515151;
 }
+
 
 body {
   margin: 0;
@@ -20,10 +36,19 @@ body {
   transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
-
+.App-header {
+padding-top: 10px;
+margin-top: 20px;
+}
 
 h1, h2, h3 {
   padding-top: 5px;
+  padding-bottom: 10px;
+}
+
+h4 {
+  padding: 10px;
+  margin-top: 16px;
 }
 
 .light {
@@ -36,25 +61,36 @@ h1, h2, h3 {
 }
 
 .dark {
-  background-color: var(--background-color);
-  color: var(--text-color);
+  background-color: var(--dark-background-color);
+  color: var(--dark-text-color);
+}
+
+.dark h4 {
+    color: var(--dark-secondary-accent-color);
 }
 
 .dark h1, .dark h2, .dark h3{
-  color: var(--accent-color);
-     transition: color var(--transition-speed);
+  color: var(--dark-text-color);
+  transition: color var(--transition-speed);
 }
 
 .dark .App-header {
-  background-color: var(--surface-color);
+  background-color: var(--dark-surface-color);
+}
 
+.dark td{
+  color: var(--dark-primary-accent-color);
+}
+
+.dark th{
+  color: var(--dark-secondary-accent-color);
 }
 
 table {
   width: 90%;
   margin: 2rem auto;
   border-collapse: collapse;
-  background-color: var(--surface-color);
+  background-color: var(--dark-surface-color);
   border-radius: 8px;
   overflow: hidden;
   transition: background-color 0.1s, color 0.2s;
@@ -64,15 +100,16 @@ th, td {
   padding: 12px 15px;
   text-align: center;
   border: 1px solid #444;
+  color: var(--light-text-color);
 }
 
 th {
   background-color: var(--table-header-color);
-  color: var(--text-color);
+  color: var(--dark-text-color);
 }
 
-tr:hover {
-  background-color: var(--table-row-hover);
+.dark tr:hover {
+  background-color: #48baba12;
 }
 
 .light table {
@@ -81,19 +118,23 @@ tr:hover {
 
 .light th {
   color: #333;
-  background-color: #ddd;
+  background-color: #4bc0c0b5;
 }
 
 .light tr:hover {
-  background-color: #dddcdc;
+  background-color: #ebebebc3;
 }
 
 .dark table {
-  background-color: var(--surface-color);
+  background-color: var(--dark-surface-color);
 }
 
 .dark th, .dark td {
   border-color: #333;
+}
+
+.light h4 {
+  color: var(--dark-secondary-accent-color);
 }
 
 .switch {
@@ -204,7 +245,7 @@ label svg.sun, label svg.moon {
   width: 70%;
   appearance: none;
   height: 8px;
-  background: var(--accent-color);
+  background: var(--dark-primary-accent-color);
   border-radius: 5px;
   outline: none;
   opacity: 0.7;
@@ -217,15 +258,32 @@ label svg.sun, label svg.moon {
 
 .slider-control::-webkit-slider-thumb {
   appearance: none;
-  width: 15px;
-  height: 15px;
-  background: var(--background-color);
-  border: 1px solid var(--accent-color);
+  width: 16px;
+  height: 16px;
+  background: var(--dark-background-color);
+  border: 1px solid var(--dark-primary-accent-color);
   border-radius: 50%;
   cursor: pointer;
   transition: background 0.3s;
 }
 
 .slider-control::-webkit-slider-thumb:hover {
-  background: var(--accent-color);
+  background: #2a2a2af3;
+}
+
+
+.light .slider-control {
+  background-color: var(--dark-secondary-accent-color);
+}
+
+.light .slider-control::-webkit-slider-thumb{
+  border: 1px solid var(--dark-secondary-accent-color);
+  background: var(--dark-text-color);
+}
+
+.pump-threshold {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--accent-color);
 }
