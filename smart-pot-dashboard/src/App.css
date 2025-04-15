@@ -15,11 +15,13 @@
   --dark-primary-accent-color: #bb86fc;
   --dark-secondary-accent-color:  #4bc0c0;
   --dark-text-color: #e1e1e1;
+  
   --transition-speed: 0.4s;
+  
 
+  /* light */
   --table-header-color: #333333;
   --table-row-hover: #2f2f2f;
-  /* light */
   --light-text-color: #515151;
 }
 

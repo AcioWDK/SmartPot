@@ -8,39 +8,68 @@ The source code of each library should be placed in a separate directory
 For example, see the structure of the following example libraries `Foo` and `Bar`:
 
 |--lib
-|  |
-|  |--Bar
-|  |  |--docs
-|  |  |--examples
-|  |  |--src
-|  |     |- Bar.c
-|  |     |- Bar.h
-|  |  |- library.json (optional. for custom build options, etc) https://docs.platformio.org/page/librarymanager/config.html
-|  |
-|  |--Foo
-|  |  |- Foo.c
-|  |  |- Foo.h
-|  |
-|  |- README --> THIS FILE
-|
-|- platformio.ini
-|--src
-   |- main.c
+|  |            
+MC ( esp32 )
+    -> reads humidity from sensor 
+    -> sends humidity to server 
+    -> control pump
+    -> receives pump trigger threshold updates from server 
 
-Example contents of `src/main.c` using Foo and Bar:
-```
-#include <Foo.h>
-#include <Bar.h>
+       ^
+       |    webSocket
+       v
 
-int main (void)
-{
-  ...
-}
+server ( Node.js )
 
-```
+    -> stores humidity in DB (SQLite) ( at /api/readings) 
+    -> sends current humidity to React App 
+    -> listens for threshold changes from React App 
 
-The PlatformIO Library Dependency Finder will find automatically dependent
-libraries by scanning project source files.
+       ^
+       |    socket.io
+       v
 
-More information about PlatformIO Library Dependency Finder
-- https://docs.platformio.org/page/librarymanager/ldf.html
+React webapp
+
+    -> displays live humidity chart 
+    -> sends new threshold value via slider 
+    -> displays latest readings table ( from /api/readings ) 
+
+
+
+
+
+
+
+MC Detailed:
+
+setup:
+
+- connect to wifi
+- connect to webSocket server
+- set default threshold
+
+loop:
+
+- read humidity sensor
+- send value to server via websocket
+
+
+
+
+
+
+Wiring
+
+humidity sensor:
+-> vcc to esp32 3v ( red cable )
+-> DO to esp G34 ( purple cable )
+-> gnd to ground ( black cable )
+
+relay:
+-> vcc to esp32 3v ( red cable ) 
+-> gnd to ground ( black cable ) 
+-> IN to G33 ( purple cable ) 
+
+-> COM to 5v power supply ( red cable ) 
+-> NO to pump ( red cable )

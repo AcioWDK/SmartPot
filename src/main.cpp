@@ -6,10 +6,18 @@
 const char* ssid = "meh";
 const char* password = "okwhatever";
 
-const char* websocket_server_host = "192.168.1.246"; // CHANGE to your computer IP
+const char* websocket_server_host = "192.168.1.246"; // CHANGE to your server IP
 const uint16_t websocket_server_port = 3000;
 
-int humidityThreshold = 0;
+const int pumpPin = 33;
+bool pumpState = false;
+unsigned long lastPumpChange = 0;
+const unsigned long minPumpInterval = 5000;
+
+const int humidityPin = 34;
+const int dryValue = 4095;
+const int wetValue = 1500;
+int humidityThreshold = 40;
 
 WebSocketsClient webSocket;
 bool webSocketConnected = false;
@@ -49,6 +57,9 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
 void setup() {
   Serial.begin(921600); 
+  pinMode(pumpPin, OUTPUT);
+  digitalWrite(pumpPin, HIGH);
+  
   WiFi.begin(ssid, password);
 
   Serial.print("Connecting to WiFi");
@@ -66,14 +77,34 @@ void setup() {
 
 void loop() {
   webSocket.loop();
+  
+  int sensorValue = analogRead(humidityPin);
+  float humidityPercent = (float)(sensorValue - dryValue) * 100.0 / (wetValue - dryValue);
+  humidityPercent = constrain(humidityPercent, 0, 100);
 
-  // Send fake humidity every 5 seconds only if connected
+  // Send humidity every 5 seconds only if connected
   static unsigned long lastSend = 0;
   if (millis() - lastSend > 5000 && webSocketConnected) {
     lastSend = millis();
-    int humidity = random(30, 80);  // Fake humidity value
-    String message = String(humidity);
+    // int humidity = random(30, 80);  // Fake humidity value
+    String message = String(humidityPercent);
     webSocket.sendTXT(message);
     Serial.println("Sending humidity: " + message);
   }
+
+  unsigned long now = millis();
+  if (int(humidityPercent) < humidityThreshold && !pumpState && (now - lastPumpChange >= minPumpInterval)) {
+    digitalWrite(pumpPin, LOW); // Turn ON pump
+    pumpState = true;
+    lastPumpChange = now;
+    Serial.println("Pump ON");
+  }
+
+  if (int(humidityPercent) >= humidityThreshold && pumpState && (now - lastPumpChange >= minPumpInterval)) {
+    digitalWrite(pumpPin, HIGH); // Turn OFF pump
+    pumpState = false;
+    lastPumpChange = now;
+    Serial.println("Pump OFF");
+  }
+
 }
