@@ -70,10 +70,11 @@ void setup() {
   Serial.println();
   Serial.println("WiFi connected");
 
-  webSocket.begin(websocket_server_host, websocket_server_port, "/");
+  webSocket.begin(websocket_server_host, websocket_server_port, "/esp32");
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000); // Reconnect every 5s if disconnected
 }
+
 
 void loop() {
   webSocket.loop();
@@ -86,25 +87,37 @@ void loop() {
   static unsigned long lastSend = 0;
   if (millis() - lastSend > 5000 && webSocketConnected) {
     lastSend = millis();
-    // int humidity = random(30, 80);  // Fake humidity value
-    String message = String(humidityPercent);
+    int humidity = random(30, 80);  // Fake humidity value
+    String message = String(humidity);
     webSocket.sendTXT(message);
     Serial.println("Sending humidity: " + message);
+
+        if (humidity < humidityThreshold ) {
+      digitalWrite(pumpPin, LOW); 
+      Serial.println("Pump ON");
+    }else
+    {
+      digitalWrite(pumpPin, HIGH); 
+      Serial.println("Pump OFF");  
+    }
+
   }
 
-  unsigned long now = millis();
-  if (int(humidityPercent) < humidityThreshold && !pumpState && (now - lastPumpChange >= minPumpInterval)) {
-    digitalWrite(pumpPin, LOW); // Turn ON pump
-    pumpState = true;
-    lastPumpChange = now;
-    Serial.println("Pump ON");
-  }
+  // unsigned long now = millis();
+  // if (humidityPercent < humidityThreshold && !pumpState && (now - lastPumpChange >= minPumpInterval)) {
+  //   digitalWrite(pumpPin, LOW); 
+  //   pumpState = true;
+  //   lastPumpChange = now;
 
-  if (int(humidityPercent) >= humidityThreshold && pumpState && (now - lastPumpChange >= minPumpInterval)) {
-    digitalWrite(pumpPin, HIGH); // Turn OFF pump
-    pumpState = false;
-    lastPumpChange = now;
-    Serial.println("Pump OFF");
-  }
+  //   Serial.println("Pump ON");
+  // }
+
+  // if (humidityPercent >= humidityThreshold && pumpState && (now - lastPumpChange >= minPumpInterval)) {
+  //   digitalWrite(pumpPin, HIGH); 
+  //   pumpState = false;
+  //   lastPumpChange = now;
+  //   Serial.println("Pump OFF");
+  // }
 
 }
+

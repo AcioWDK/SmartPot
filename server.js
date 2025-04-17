@@ -1,5 +1,4 @@
 const http = require('http');
-const fs = require('fs');
 const WebSocket = require('ws');
 const socketio = require('socket.io');
 const express = require('express');
@@ -7,46 +6,53 @@ const cors = require('cors');
 const db = require('./db'); // Import database
 
 const app = express();
-
-// --- Allow all CORS requests ---
 app.use(cors());  
 
 const server = http.createServer(app);
 
 // --- WebSocket for ESP32 ---
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ noServer: true });
 
-// --- Socket.IO for Frontend with CORS ---
+// --- Socket.IO for Frontend ---
 const io = socketio(server, {
   cors: {
-    origin: "http://localhost:5000", // <-- Allow React frontend
+    origin: "http://localhost:5000", // Your React frontend
     methods: ["GET", "POST"]
   }
 });
 
-// Serve static files (later React frontend will go here)
-app.use(express.static('public'));
+// --- Upgrade request handler (WebSocket path filtering) ---
+server.on('upgrade', (request, socket, head) => {
+  if (request.url === '/esp32') {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request);
+    });
+  } else {
+    socket.destroy(); // Reject anything else
+  }
+});
 
-// ESP32 WebSocket connection
-wss.on('connection', (ws) => {
+// --- Handle ESP32 connections ---
+wss.on('connection', (ws, req) => {
   console.log('ESP32 connected via WebSocket');
 
   ws.on('message', (message) => {
     console.log(`Humidity received: ${message}`);
-    
+
     const humidity = parseInt(message);
     if (!isNaN(humidity)) {
-      // Save to database
       db.run(`INSERT INTO humidity_readings (value) VALUES (?)`, [humidity], (err) => {
         if (err) {
-          console.error('DB Insert Error: ', err);
+          console.error('DB Insert Error:', err);
         } else {
           console.log('Humidity saved:', humidity);
         }
       });
 
-      // Send to frontend clients
+      // Emit to frontend
       io.emit('humidityData', humidity);
+    } else {
+      console.warn('Ignored non-numeric message from ESP32:', message);
     }
   });
 
