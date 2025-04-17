@@ -4,19 +4,54 @@ const socketio = require('socket.io');
 const express = require('express');
 const cors = require('cors');
 const db = require('./db'); // Import database
+const fs = require('fs'); 
+const path = require('path');
+const { log } = require('console');
 
 const app = express();
 app.use(cors());  
+app.use(express.json());
 
 const server = http.createServer(app);
 
-// --- WebSocket for ESP32 ---
+// --- Threshold Storage ---
+const thresholdFile = path.join(__dirname, 'threshold.json'); 
+
+function getThreshold() {
+  try {
+    const data = fs.readFileSync(thresholdFile);
+    return JSON.parse(data).threshold;
+  } catch (err) {
+    return 31; // default threshold if file doesn't exist or fails
+  }
+}
+
+function setThreshold(value) {
+  fs.writeFileSync(thresholdFile, JSON.stringify({ threshold: value }));
+}
+
+// --- API to get current threshold ---
+app.get('/api/threshold', (req, res) => { 
+  res.json({ threshold: getThreshold() });
+});
+
+// --- API to set new threshold ---
+app.post('/api/threshold', (req, res) => { 
+  const { threshold } = req.body;
+  if (typeof threshold === 'number') {
+    setThreshold(threshold);
+    res.sendStatus(200);
+  } else {
+    res.status(400).send('Invalid threshold');
+  }
+});
+
 const wss = new WebSocket.Server({ noServer: true });
 
 // --- Socket.IO for Frontend ---
 const io = socketio(server, {
   cors: {
-    origin: "http://localhost:5000", // Your React frontend
+    origin: "http://localhost:5000", 
     methods: ["GET", "POST"]
   }
 });
@@ -35,6 +70,9 @@ server.on('upgrade', (request, socket, head) => {
 // --- Handle ESP32 connections ---
 wss.on('connection', (ws, req) => {
   console.log('ESP32 connected via WebSocket');
+
+  // Send current threshold to ESP32 on connect
+  ws.send(JSON.stringify({ type: 'threshold', value: getThreshold() })); // <-- New: Send current threshold on connect
 
   ws.on('message', (message) => {
     console.log(`Humidity received: ${message}`);
@@ -69,15 +107,17 @@ io.on('connection', (socket) => {
   });
 
   socket.on('thresholdUpdate', (newThreshold) => {
-  console.log('New threshold from frontend:', newThreshold);
+    console.log('New threshold from frontend:', newThreshold);
 
-  // Broadcast it to all ESP32 clients (WebSocket)
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type: 'threshold', value: newThreshold }));
-    }
+    setThreshold(newThreshold); // set new threshold to file
+
+    // Broadcast it to all ESP32 clients (WebSocket)
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'threshold', value: newThreshold }));
+      }
+    });
   });
-});
 
 });
 

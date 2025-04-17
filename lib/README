@@ -1,19 +1,10 @@
-
-This directory is intended for project specific (private) libraries.
-PlatformIO will compile them to static libraries and link into the executable file.
-
-The source code of each library should be placed in a separate directory
-("lib/your_library_name/[Code]").
-
-For example, see the structure of the following example libraries `Foo` and `Bar`:
-
-|--lib
-|  |            
+          
 MC ( esp32 )
     -> reads humidity from sensor 
+    -> gets current treshold from server
     -> sends humidity to server 
     -> control pump
-    -> receives pump trigger threshold updates from server 
+    -> receives pump threshold updates from server 
 
        ^
        |    webSocket
@@ -22,6 +13,7 @@ MC ( esp32 )
 server ( Node.js )
 
     -> stores humidity in DB (SQLite) ( at /api/readings) 
+    -> stores current threshold in threshold.json 
     -> sends current humidity to React App 
     -> listens for threshold changes from React App 
 
@@ -30,11 +22,10 @@ server ( Node.js )
        v
 
 React webapp
-
     -> displays live humidity chart 
     -> sends new threshold value via slider 
     -> displays latest readings table ( from /api/readings ) 
-
+    -> get last set threshold from server
 
 
 
@@ -73,3 +64,98 @@ relay:
 
 -> COM to 5v power supply ( red cable ) 
 -> NO to pump ( red cable )
+
+
+esp32
+
+5v relay
+
+3-6v pump
+
+resistive humidity sensor 
+
+ext power supply 5v 
+
+
+
+
+                        +------------+
+                        |            |
+                        |            |
+                        |   Sensor   |
+                        |            |
+                        +------------+
+
+                             |
+                             |  Humidity
+                             |
+                             v
+
+                        +------------+         WebSocket          +------------+         Socket.IO             +------------+
+                        |            |--------------------------->|            |<----------------------------->|            |
+                        |            |         localhost          |   Server   |         localhost             | React App  |
+                        |   ESP32    |           /300             | (Backend)  |           /5000               | (Frontend) |
+                        |            |<---------------------------|   NodeJS   |------------------------------>|            |
+                        +------------+         WebSocket          +------------+         Socket.IO             +------------+
+
+                             |
+                             |  HIGH/LOW
+                             |
+                             v                        
+                        +------------+
+                        |            |
+                        |            |
+                        |   Pump     |
+                        |            |
+                        +------------+
+                                                
+
+
+
+
+
+
++--------------------+
+|    ESP32 Setup     |
++--------------------+
+         |
+         v
++--------------------+
+| Connect to Wi-Fi   |
++--------------------+
+         |
+         v
++--------------------+
+| Retrieve Threshold |
+|    from server     |
++--------------------+
+         |
+         v
++--------------------+
+| Start Sensor Timer |
++--------------------+
+         |
+         v
++--------------------+
+| Read Sensor Data   |
++--------------------+
+         |
+         v
++--------------------+
+| Compare with       |
+| Threshold          |
++--------------------+
+         |
+         v
++--------------------+
+| Send Data to       |
+| Server via HTTP    |
++--------------------+
+         |
+         v
++--------------------+
+| Wait for Next Read |
++--------------------+
+         |
+         v
+     (Loop Back)

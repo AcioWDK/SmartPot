@@ -37,6 +37,17 @@ function App() {
   const [threshold, setThreshold] = useState(40); 
 
   useEffect(() => {
+    fetch('http://localhost:3000/api/threshold')
+      .then(res => res.json())
+      .then(data => {
+        setThreshold(data.threshold);
+      })
+      .catch(err => {
+        console.error('Failed to load threshold:', err);
+      });
+  }, []);
+
+  useEffect(() => {
   const savedTheme = localStorage.getItem('darkMode');
   if (savedTheme !== null) {
     setDarkMode(savedTheme === 'true'); 
@@ -71,7 +82,12 @@ useEffect(() => {
 const handleThresholdChange = (e) => {
   const newThreshold = e.target.value;
   setThreshold(newThreshold);
-  socket.emit('thresholdUpdate', newThreshold); // Send to server
+  socket.emit('thresholdUpdate', newThreshold);
+  fetch('http://localhost:3000/api/threshold', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ threshold: newThreshold })
+  }).catch(err => console.error('Failed to save threshold:', err));
 };
 
   
