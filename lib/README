@@ -1,4 +1,13 @@
-          
+Physical components:
+
+- esp32 devkit
+- 5v relay
+- resistive humidity sensor
+- 3-6v water pump
+
+
+
+
 MC ( esp32 )
     -> reads humidity from sensor 
     -> gets current treshold from server
@@ -12,8 +21,8 @@ MC ( esp32 )
 
 server ( Node.js )
 
-    -> stores humidity in DB (SQLite) ( at /api/readings) 
-    -> stores current threshold in threshold.json 
+    -> stores humidity in DB (SQLite) ( at http://localhost:3000/api/readings) 
+    -> stores current threshold in threshold.json and at http://localhost:3000/api/threshold
     -> sends current humidity to React App 
     -> listens for threshold changes from React App 
 
@@ -24,8 +33,8 @@ server ( Node.js )
 React webapp
     -> displays live humidity chart 
     -> sends new threshold value via slider 
-    -> displays latest readings table ( from /api/readings ) 
-    -> get last set threshold from server
+    -> displays latest readings table ( from http://localhost:3000/api/readings ) 
+    -> get last set threshold from http://localhost:3000/api/threshold
 
 
 
@@ -44,6 +53,8 @@ loop:
 
 - read humidity sensor
 - send value to server via websocket
+- listens to new threshold updates
+- handles the pump accordingly
 
 
 
@@ -53,28 +64,24 @@ loop:
 Wiring
 
 humidity sensor:
--> vcc to esp32 3v ( red cable )
--> DO to esp G34 ( purple cable )
--> gnd to ground ( black cable )
+-> vcc to esp32 3v 
+-> DO to esp G35 
+-> gnd to ground 
 
 relay:
--> vcc to esp32 3v ( red cable ) 
--> gnd to ground ( black cable ) 
--> IN to G33 ( purple cable ) 
+-> vcc to esp32 3v  
+-> gnd to ground  
+-> IN to G33  
 
--> COM to 5v power supply ( red cable ) 
--> NO to pump ( red cable )
+-> COM to 5v power supply  
+-> NO to pump vcc
 
+esp32:
+- 5vcc to external 5v power supply
+- gnd to gnd
+- pin33 to pump IN
+- pin35 to humidity sensor DO
 
-esp32
-
-5v relay
-
-3-6v pump
-
-resistive humidity sensor 
-
-ext power supply 5v 
 
 
 
@@ -142,8 +149,9 @@ ext power supply 5v
          |
          v
 +--------------------+
-| Compare with       |
-| Threshold          |
+|   Compare with     |
+|   Threshold and    |
+|   activate pump    |
 +--------------------+
          |
          v
@@ -159,3 +167,6 @@ ext power supply 5v
          |
          v
      (Loop Back)
+
+
+

@@ -1,4 +1,5 @@
-/* :root {
+/* initial theme
+:root {
   --background-color: #1e1e1e;
   --surface-color: #2a2a2a;
   --text-color: #e0e0e0;
@@ -15,16 +16,14 @@
   --dark-primary-accent-color: #bb86fc;
   --dark-secondary-accent-color:  #4bc0c0;
   --dark-text-color: #e1e1e1;
-  
+
   --transition-speed: 0.4s;
-  
 
   /* light */
   --table-header-color: #333333;
   --table-row-hover: #2f2f2f;
   --light-text-color: #515151;
 }
-
 
 body {
   margin: 0;
@@ -39,8 +38,10 @@ body {
 }
 
 .App-header {
-padding-top: 10px;
-margin-top: 20px;
+  padding-top: 10px;
+  margin-top: 20px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 h1, h2, h3 {
@@ -96,6 +97,7 @@ table {
   border-radius: 8px;
   overflow: hidden;
   transition: background-color 0.1s, color 0.2s;
+  font-size: 0.9rem; 
 }
 
 th, td {
@@ -242,9 +244,9 @@ label svg.sun, label svg.moon {
   z-index: 1000;
 }
 
-
 .slider-control {
-  width: 70%;
+  width: 100%;
+  max-width: 250px;
   appearance: none;
   height: 8px;
   background: var(--dark-primary-accent-color);
@@ -252,6 +254,7 @@ label svg.sun, label svg.moon {
   outline: none;
   opacity: 0.7;
   transition: opacity 0.2s;
+  margin: 0 auto;
 }
 
 .slider-control:hover {
@@ -273,7 +276,6 @@ label svg.sun, label svg.moon {
   background: #2a2a2af3;
 }
 
-
 .light .slider-control {
   background-color: var(--dark-secondary-accent-color);
 }
@@ -284,8 +286,63 @@ label svg.sun, label svg.moon {
 }
 
 .pump-threshold {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--accent-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--accent-color);
 }
+
+
+.graph-threshold-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 1rem;
+}
+
+.graph-container {
+  flex: 3;
+  height: 300px;
+} 
+
+ .threshold-control {
+  flex: 1;
+  max-width: 300px;
+  padding: 1rem;
+}
+
+/* desktop style */
+@media (min-width: 768px) {
+  .graph-threshold-container {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    gap: 2rem; 
+    margin-top: 3rem;
+    padding: 0 2rem;
+  }
+
+  .graph-container {
+    height: 300px;
+    flex: 4; 
+    max-width: 70%; 
+  }
+
+  .threshold-control {
+    flex: 1;
+    max-width: 20%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; 
+    margin-bottom: 4rem;
+  }
+
+  .threshold-control h3,
+  .threshold-control h4 {
+    margin: 0.5rem 0;
+  }
+}
+

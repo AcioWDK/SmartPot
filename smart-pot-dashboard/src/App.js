@@ -24,36 +24,39 @@ ChartJS.register(
   Legend
 );
 
-const socket = io('http://localhost:3000');
+const API_BASE = `http://${window.location.hostname}:3000`;
+const socket = io(API_BASE); // Dynamic socket connection for both mobile/PC
 
 function App() {
   const [humidity, setHumidity] = useState(null);
   const [readings, setReadings] = useState([]);
   const [darkMode, setDarkMode] = useState(() => {
-  const savedTheme = localStorage.getItem('darkMode');
-  return savedTheme !== null ? savedTheme === 'true' : true; 
-});
+    const savedTheme = localStorage.getItem('darkMode');
+    return savedTheme !== null ? savedTheme === 'true' : true;
+  });
   const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'desc' });
-  const [threshold, setThreshold] = useState(40); 
+  const [threshold, setThreshold] = useState(() => {
+    const stored = localStorage.getItem('threshold');
+    return stored !== null ? parseInt(stored, 10) : 39;
+  });
 
+
+//  Get previous set threshold 
   useEffect(() => {
-    fetch('http://localhost:3000/api/threshold')
-      .then(res => res.json())
-      .then(data => {
-        setThreshold(data.threshold);
+    axios.get(`${API_BASE}/api/threshold`)
+      .then((response) => {
+        setThreshold(response.data.threshold);
+        localStorage.setItem('threshold', response.data.threshold);
       })
-      .catch(err => {
-        console.error('Failed to load threshold:', err);
+      .catch((error) => {
+        console.error('Failed to load threshold:', error);
       });
   }, []);
 
-  useEffect(() => {
-  const savedTheme = localStorage.getItem('darkMode');
-  if (savedTheme !== null) {
-    setDarkMode(savedTheme === 'true'); 
-  }
 
-    axios.get(`${process.env.REACT_APP_API_URL}/api/readings`)
+  //  Get humidity history
+  useEffect(() => {
+    axios.get(`${API_BASE}/api/readings`)
       .then((response) => {
         setReadings(response.data.reverse());
       })
@@ -72,26 +75,39 @@ function App() {
       });
     });
 
-    return () => socket.off('humidityData');
+    // Sync threshold across all devices
+    socket.on('thresholdData', (value) => {
+      setThreshold(value);
+      localStorage.setItem('threshold', value);
+    });
+
+    return () => {
+      socket.off('humidityData');
+      socket.off('thresholdData'); // Cleanup listener
+    };
   }, []);
 
-useEffect(() => {
-  localStorage.setItem('darkMode', darkMode.toString());
-}, [darkMode]);
 
-const handleThresholdChange = (e) => {
-  const newThreshold = e.target.value;
-  setThreshold(newThreshold);
-  socket.emit('thresholdUpdate', newThreshold);
-  fetch('http://localhost:3000/api/threshold', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ threshold: newThreshold })
-  }).catch(err => console.error('Failed to save threshold:', err));
-};
+  useEffect(() => {
+    localStorage.setItem('darkMode', darkMode.toString());
+  }, [darkMode]);
 
-  
-  
+
+  // Handle threshold change
+  const handleThresholdChange = (e) => {
+    const newThreshold = parseInt(e.target.value, 10);
+    setThreshold(newThreshold);
+    localStorage.setItem('threshold', newThreshold);
+
+    fetch(`${API_BASE}/api/threshold`, { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ threshold: newThreshold }) 
+    }).catch(err => console.error('Failed to save threshold:', err));
+
+    socket.emit('thresholdUpdate', newThreshold); // Send threshold update to server
+  };
+
   const handleThemeToggle = () => {
     setDarkMode(prev => !prev);
   };
@@ -112,6 +128,7 @@ const handleThresholdChange = (e) => {
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false, 
     plugins: {
       legend: { display: true },
     },
@@ -130,7 +147,6 @@ const handleThresholdChange = (e) => {
   const sortedReadings = [...readings].sort((a, b) => {
     const aValue = sortConfig.key === 'timestamp' ? new Date(a.timestamp) : a.value;
     const bValue = sortConfig.key === 'timestamp' ? new Date(b.timestamp) : b.value;
-
     if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
     if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
     return 0;
@@ -255,50 +271,44 @@ const handleThresholdChange = (e) => {
 		c-0.144,0.531,0.171,1.08,0.707,1.225l3.863,1.034c0.531,0.146,1.081-0.175,1.225-0.707C12.825,26.293,12.505,25.746,11.974,25.599
 		z"/>
 </g>
-</svg>  
-            </label>
-          <input type="checkbox" checked={darkMode} onChange={handleThemeToggle} id='darkmode-toggle' />
-          
-          <span className="slider">
-           
-          </span>
-
+</svg>
+          </label>
+          <input type="checkbox" checked={darkMode} onChange={handleThemeToggle} id="darkmode-toggle" />
+          <span className="slider"></span>
         </label>
-
       </div>
 
-      <header className="App-header">
+<header className="App-header">
         <h1>🌱 Smart Pot Dashboard</h1>
         <h2>Live Humidity: {humidity !== null ? `${humidity}%` : 'Waiting for data...'}</h2>
 
-<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', marginTop: '2rem', marginLeft: '2rem' }}>
-  <div style={{ flex: 2 }}>
-    <Line data={chartData} options={chartOptions} />
-  </div>
+        <div className="graph-threshold-container">
+          <div className="graph-container">
+            <Line data={chartData} options={chartOptions} />
+          </div>
 
-  <div style={{ flex: 1}}>
-    <div class='pump-threshold'>
-      <h3>Pump Threshold:</h3>
-      <h4>{threshold}%</h4>
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="100"
-      value={threshold}
-      onChange={handleThresholdChange}
-      className="slider-control"
-    />
-  </div>
-</div>
-
+          <div className="threshold-control">
+            <div className="pump-threshold">
+              <h3>Pump Threshold:</h3>
+              <h4>{threshold}%</h4>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={threshold}
+              onChange={handleThresholdChange}
+              className="slider-control"
+            />
+          </div>
+        </div>
 
         <h2>Recent Readings (Last 50)</h2>
         <table>
           <thead>
             <tr>
               <th onClick={() => handleSort('timestamp')}>Timestamp {sortConfig.key === 'timestamp' ? (sortConfig.direction === 'asc' ? ' - Oldest' : ' - Latest') : ''}</th>
-              <th onClick={() => handleSort('value')}>Humidity (%){sortConfig.key === 'value' ? (sortConfig.direction === 'asc' ? ' - Lowest' : ' - Highest') : ''} </th>
+              <th onClick={() => handleSort('value')}>Humidity (%) {sortConfig.key === 'value' ? (sortConfig.direction === 'asc' ? ' - Lowest' : ' - Highest') : ''}</th>
             </tr>
           </thead>
           <tbody>
@@ -316,3 +326,5 @@ const handleThresholdChange = (e) => {
 }
 
 export default App;
+
+
