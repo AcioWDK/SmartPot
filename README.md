@@ -1,4 +1,5 @@
 Project title: Smart Pot
+
 Project theme: A self watering flowerpot with a real-time interactable frontend.
 
 Description: 
@@ -19,19 +20,6 @@ Features:
 - live humidity update via Value or graph
 - historcial humidity values + timestamps collected from DB
 - remembers threshold from previous sessions ( stored in a json )
-- 
-
-
-
-
-Physical components:
-
-- esp32 devkit
-- 5v relay
-- resistive humidity sensor
-- 3-6v water pump
-
-
 
 
 MC ( esp32 )
@@ -40,22 +28,18 @@ MC ( esp32 )
     -> sends humidity to server 
     -> control pump
     -> receives pump threshold updates from server 
-
        ^
        |    webSocket
        v
 
 server ( Node.js )
-
     -> stores humidity in DB (SQLite) ( at http://localhost:3000/api/readings) 
     -> stores current threshold in threshold.json and at http://localhost:3000/api/threshold
     -> sends current humidity to React App 
     -> listens for threshold changes from React App 
-
        ^
        |    socket.io
        v
-
 React webapp
     -> displays live humidity chart 
     -> sends new threshold value via slider 
@@ -141,57 +125,54 @@ esp32:
                         |   Pump     |
                         |            |
                         +------------+
-                                                
 
+  
 
+```
 
-
-
-
-+--------------------+
-|    ESP32 Setup     |
-+--------------------+
-         |
-         v
-+--------------------+
-| Connect to Wi-Fi   |
-+--------------------+
-         |
-         v
-+--------------------+
-| Retrieve Threshold |
-|    from server     |
-+--------------------+
-         |
-         v
-+--------------------+
-| Start Sensor Timer |
-+--------------------+
-         |
-         v
-+--------------------+
-| Read Sensor Data   |
-+--------------------+
-         |
-         v
-+--------------------+
-|   Compare with     |
-|   Threshold and    |
-|   activate pump    |
-+--------------------+
-         |
-         v
-+--------------------+
-| Send Data to       |
-| Server via HTTP    |
-+--------------------+
-         |
-         v
-+--------------------+
-| Wait for Next Read |
-+--------------------+
-         |
-         v
-     (Loop Back)
-
-
+                +--------------------+
+                |    ESP32 Setup     |
+                +--------------------+
+                         |
+                         v
+                +--------------------+
+                | Connect to Wi-Fi   |
+                +--------------------+
+                         |
+                         v
+                +--------------------+
+                | Retrieve Threshold |
+                |    from server     |
+                +--------------------+
+                         |
+                         v
+                +--------------------+
+                | Start Sensor Timer |
+                +--------------------+
+                         |
+                         v
+                +--------------------+
+                | Read Sensor Data   |
+                +--------------------+
+                         |
+                         v
+                +--------------------+
+                |   Compare with     |
+                |   Threshold and    |
+                |   activate pump    |
+                +--------------------+
+                         |
+                         v
+                +--------------------+
+                | Send Data to       |
+                | Server via HTTP    |
+                +--------------------+
+                         |
+                         v
+                +--------------------+
+                | Wait for Next Read |
+                +--------------------+
+                         |
+                         v
+                     (Loop Back)
+       
