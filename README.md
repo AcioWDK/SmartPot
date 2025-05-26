@@ -1,3 +1,29 @@
+Project title: Smart Pot
+Project theme: A self watering flowerpot with a real-time interactable frontend.
+
+Description: 
+
+The goal is to have a wirless microcontroller communicate with a webapp (localhost), store values in a sqlite db, and have the possibility to change the humidity treshhold ( that triggers the pump ) from the frontend.
+I'll be using a NodeJS server, running locally, to handle the communication between the esp32 and the webapp.
+The frontend will be built with React integrating socket.io for real-time updates while the server <-> esp32 communication will be handled with WebSocket.
+
+Components: 
+- esp32 devkit
+- 5v relay
+- resistive humidity sensor
+- 3-6v water pump
+
+Features:
+- persistent dark theme switch ( remembers selection across sessions )
+- live threshold update across all frontend clients and esp32
+- live humidity update via Value or graph
+- historcial humidity values + timestamps collected from DB
+- remembers threshold from previous sessions ( stored in a json )
+- 
+
+
+
+
 Physical components:
 
 - esp32 devkit
@@ -167,6 +193,5 @@ esp32:
          |
          v
      (Loop Back)
-
 
 
